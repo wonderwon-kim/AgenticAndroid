@@ -24,6 +24,8 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            applicationIdSuffix = ".solar"
+            versionNameSuffix = "-solar"
             signingConfig = signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
