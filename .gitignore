@@ -11,6 +11,7 @@
 *.jks
 *.apk
 .gradle/
+.kotlin/
 app/build/
 app/release/
 **/build/
