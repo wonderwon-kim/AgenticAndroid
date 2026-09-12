@@ -1,7 +1,6 @@
 package com.agenticandroid.app.ui
 
 import com.agenticandroid.app.BuildConfig
-import com.agenticandroid.app.agent.Action
 import com.agenticandroid.app.agent.AgentGoalState
 import com.agenticandroid.app.agent.AgentLoop
 import androidx.compose.foundation.background
@@ -28,6 +27,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +35,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 private data class ChatMessage(
     val sender: String,
@@ -44,6 +46,7 @@ private data class ChatMessage(
 @Composable
 fun AgentChatScreen() {
     val agentLoop = remember { AgentLoop() }
+    val coroutineScope = rememberCoroutineScope()
     val loopState by agentLoop.state.collectAsState()
     val nightlyCase = BuildConfig.NIGHTLY_CASE
     val caseAccent = when (nightlyCase) {
@@ -92,26 +95,28 @@ fun AgentChatScreen() {
     }
     var inputText by remember { mutableStateOf("") }
     var agentStatus by remember { mutableStateOf("Ready") }
+    var executionJob by remember { mutableStateOf<Job?>(null) }
 
     fun sendMessage() {
         val trimmed = inputText.trim()
         if (trimmed.isEmpty()) return
+        if (executionJob?.isActive == true) return
         val task = agentLoop.createTask(trimmed)
         val plan = agentLoop.buildPlan(trimmed)
-        agentLoop.updateState(AgentGoalState.OBSERVING)
-        agentLoop.recordObservation(task, "Screen snapshot captured")
-        agentLoop.updateState(AgentGoalState.THINKING)
-        plan.forEach { step ->
-            agentLoop.recordAction(task, Action(type = step.actionType, description = step.description))
-        }
-        agentLoop.updateState(AgentGoalState.ACTING)
-        agentLoop.updateState(AgentGoalState.VERIFYING)
-        agentLoop.finish(task)
         messages.add(ChatMessage("User", trimmed))
-        agentStatus = "Completed"
         messages.add(ChatMessage("AI", "Plan ready: ${plan.joinToString(" -> ") { it.title }}"))
-        messages.add(ChatMessage("AI", "Verified ${task.actionHistory.size} actions for: $trimmed"))
+        agentStatus = "Executing"
         inputText = ""
+        executionJob = coroutineScope.launch {
+            agentLoop.executePlan(task, plan) { step ->
+                agentStatus = step.title
+            }
+            if (agentLoop.state.value == AgentGoalState.COMPLETED) {
+                agentStatus = "Completed"
+                messages.add(ChatMessage("AI", "Verified ${task.actionHistory.size} actions for: $trimmed"))
+            }
+            executionJob = null
+        }
     }
 
     Surface(
@@ -172,7 +177,12 @@ fun AgentChatScreen() {
                             Button(onClick = { agentLoop.resume() }, enabled = loopState == AgentGoalState.PAUSED) {
                                 Text("Resume")
                             }
-                            Button(onClick = { agentLoop.cancel(); agentStatus = "Cancelled" }) {
+                            Button(onClick = {
+                                agentLoop.cancel()
+                                executionJob?.cancel()
+                                executionJob = null
+                                agentStatus = "Cancelled"
+                            }) {
                                 Text("Stop")
                             }
                         }

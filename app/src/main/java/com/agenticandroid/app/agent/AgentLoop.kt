@@ -2,6 +2,7 @@ package com.agenticandroid.app.agent
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.delay
 
 enum class AgentGoalState {
     RUNNING,
@@ -95,6 +96,38 @@ class AgentLoop {
 
     fun updateState(newState: AgentGoalState) {
         _state.value = newState
+        currentTask()?.currentState = newState
+    }
+
+    suspend fun executePlan(
+        task: AgentTask,
+        plan: List<AgentPlanStep>,
+        stepDelayMs: Long = 250L,
+        onStep: (AgentPlanStep) -> Unit = {}
+    ) {
+        updateState(AgentGoalState.OBSERVING)
+        recordObservation(task, "Screen snapshot captured")
+        for (step in plan) {
+            while (_state.value == AgentGoalState.PAUSED) {
+                delay(50L)
+            }
+            if (_state.value == AgentGoalState.CANCELLED) return
+            updateState(
+                when (step.actionType) {
+                    ActionType.WAIT -> AgentGoalState.OBSERVING
+                    ActionType.ASK_USER -> AgentGoalState.THINKING
+                    else -> AgentGoalState.ACTING
+                }
+            )
+            recordAction(task, Action(type = step.actionType, description = step.description))
+            onStep(step)
+            delay(stepDelayMs)
+        }
+        if (_state.value != AgentGoalState.CANCELLED) {
+            updateState(AgentGoalState.VERIFYING)
+            delay(stepDelayMs)
+            finish(task)
+        }
     }
 
     fun pause() {

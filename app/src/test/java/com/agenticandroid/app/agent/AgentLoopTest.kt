@@ -3,6 +3,7 @@ package com.agenticandroid.app.agent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlinx.coroutines.runBlocking
 
 class AgentLoopTest {
     @Test
@@ -34,5 +35,18 @@ class AgentLoopTest {
         assertEquals(AgentGoalState.CANCELLED, loop.state.value)
         assertEquals(AgentGoalState.CANCELLED, task.currentState)
         assertTrue(loop.currentTask() === task)
+    }
+
+    @Test
+    fun executePlanRecordsEveryStepAndCompletesTask() = runBlocking {
+        val loop = AgentLoop()
+        val task = loop.createTask("scroll to the latest message")
+        val plan = loop.buildPlan(task.userRequest)
+
+        loop.executePlan(task, plan, stepDelayMs = 0L)
+
+        assertEquals(AgentGoalState.COMPLETED, loop.state.value)
+        assertEquals(plan.size, task.actionHistory.size)
+        assertEquals(1, task.observations.size)
     }
 }
