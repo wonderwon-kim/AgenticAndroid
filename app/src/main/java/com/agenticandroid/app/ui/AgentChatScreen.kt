@@ -1,5 +1,6 @@
 package com.agenticandroid.app.ui
 
+import com.agenticandroid.app.BuildConfig
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,9 +39,24 @@ private data class ChatMessage(
 
 @Composable
 fun AgentChatScreen() {
+    val nightlyCase = BuildConfig.NIGHTLY_CASE
+    val caseAccent = when (nightlyCase) {
+        "PLANNER" -> Color(0xFFFFC857)
+        "ACCESSIBILITY" -> Color(0xFFB7F0AD)
+        "RECOVERY" -> Color(0xFFFF8A80)
+        "TURBO" -> Color(0xFFD7A7FF)
+        else -> Color(0xFF7DE7FF)
+    }
+    val casePrompt = when (nightlyCase) {
+        "PLANNER" -> "Plan the next steps..."
+        "ACCESSIBILITY" -> "Describe the screen task..."
+        "RECOVERY" -> "Resume a failed task..."
+        "TURBO" -> "Run a fast command..."
+        else -> "Type a focused command..."
+    }
     val messages = remember {
         mutableStateListOf(
-            ChatMessage("AI", "System online. Ready for autonomous task execution."),
+            ChatMessage("AI", "$nightlyCase mode online. Ready for autonomous task execution."),
             ChatMessage("AI", "Session synced with your Android surface.")
         )
     }
@@ -88,14 +104,14 @@ fun AgentChatScreen() {
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(
-                            text = "A I // Agent",
-                            color = Color(0xFF7DE7FF),
+                            text = "A I // $nightlyCase",
+                            color = caseAccent,
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = agentStatus,
-                            color = Color(0xFFBFEAFF),
+                            color = caseAccent.copy(alpha = 0.78f),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -124,7 +140,7 @@ fun AgentChatScreen() {
                                     Text(
                                         text = message.sender,
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = if (isUser) Color.Black else Color(0xFF8FE9FF)
+                                        color = if (isUser) Color.Black else caseAccent
                                     )
                                     Text(
                                         text = message.text,
@@ -145,7 +161,7 @@ fun AgentChatScreen() {
                         value = inputText,
                         onValueChange = { inputText = it },
                         modifier = Modifier.weight(1f),
-                        placeholder = { Text("Type a command...", color = Color(0xFF9FC3D7)) },
+                        placeholder = { Text(casePrompt, color = Color(0xFF9FC3D7)) },
                         shape = RoundedCornerShape(18.dp)
                     )
                     Button(

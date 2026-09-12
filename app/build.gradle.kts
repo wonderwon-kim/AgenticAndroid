@@ -21,6 +21,40 @@ android {
         }
     }
 
+    flavorDimensions += "nightly"
+    productFlavors {
+        create("focus") {
+            dimension = "nightly"
+            applicationIdSuffix = ".focus"
+            versionNameSuffix = "-focus"
+            buildConfigField("String", "NIGHTLY_CASE", "\"FOCUS\"")
+        }
+        create("planner") {
+            dimension = "nightly"
+            applicationIdSuffix = ".planner"
+            versionNameSuffix = "-planner"
+            buildConfigField("String", "NIGHTLY_CASE", "\"PLANNER\"")
+        }
+        create("accessibility") {
+            dimension = "nightly"
+            applicationIdSuffix = ".accessibility"
+            versionNameSuffix = "-accessibility"
+            buildConfigField("String", "NIGHTLY_CASE", "\"ACCESSIBILITY\"")
+        }
+        create("recovery") {
+            dimension = "nightly"
+            applicationIdSuffix = ".recovery"
+            versionNameSuffix = "-recovery"
+            buildConfigField("String", "NIGHTLY_CASE", "\"RECOVERY\"")
+        }
+        create("turbo") {
+            dimension = "nightly"
+            applicationIdSuffix = ".turbo"
+            versionNameSuffix = "-turbo"
+            buildConfigField("String", "NIGHTLY_CASE", "\"TURBO\"")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -42,6 +76,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     lint {
