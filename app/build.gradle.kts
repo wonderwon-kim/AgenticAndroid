@@ -95,6 +95,12 @@ android {
             versionNameSuffix = "-synthesis"
             buildConfigField("String", "NIGHTLY_CASE", "\"SYNTHESIS\"")
         }
+        create("ultimate") {
+            dimension = "nightly"
+            applicationIdSuffix = ".ultimate"
+            versionNameSuffix = "-ultimate"
+            buildConfigField("String", "NIGHTLY_CASE", "\"ULTIMATE\"")
+        }
     }
 
     buildTypes {
