@@ -50,6 +50,11 @@ data class AgentPlanStep(
     val description: String
 )
 
+data class ActionExecutionResult(
+    val succeeded: Boolean,
+    val message: String
+)
+
 data class AgentTask(
     val userRequest: String,
     val goal: String,
@@ -63,7 +68,6 @@ data class AgentTask(
 class AgentLoop {
     private val _state = MutableStateFlow(AgentGoalState.RUNNING)
     val state: StateFlow<AgentGoalState> = _state
-
     private val taskHistory = mutableListOf<AgentTask>()
 
     fun currentTask(): AgentTask? = taskHistory.lastOrNull()
@@ -103,7 +107,10 @@ class AgentLoop {
         task: AgentTask,
         plan: List<AgentPlanStep>,
         stepDelayMs: Long = 250L,
-        onStep: (AgentPlanStep) -> Unit = {}
+        onStep: (AgentPlanStep) -> Unit = {},
+        executeAction: suspend (Action) -> ActionExecutionResult = {
+            ActionExecutionResult(true, "Simulation mode")
+        }
     ) {
         updateState(AgentGoalState.OBSERVING)
         recordObservation(task, "Screen snapshot captured")
@@ -119,8 +126,14 @@ class AgentLoop {
                     else -> AgentGoalState.ACTING
                 }
             )
-            recordAction(task, Action(type = step.actionType, description = step.description))
+            val action = Action(type = step.actionType, description = step.description)
+            recordAction(task, action)
             onStep(step)
+            val result = executeAction(action)
+            if (!result.succeeded) {
+                fail(task, result.message)
+                return
+            }
             delay(stepDelayMs)
         }
         if (_state.value != AgentGoalState.CANCELLED) {

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">AgenticAndroid</string>
+    <string name="accessibility_service_description">Allows AgenticAndroid to observe and perform requested screen actions.</string>
 </resources>

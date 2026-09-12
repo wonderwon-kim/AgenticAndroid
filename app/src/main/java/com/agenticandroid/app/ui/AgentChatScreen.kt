@@ -2,6 +2,7 @@ package com.agenticandroid.app.ui
 
 import com.agenticandroid.app.BuildConfig
 import com.agenticandroid.app.agent.AgentGoalState
+import com.agenticandroid.app.agent.AccessibilityActionService
 import com.agenticandroid.app.agent.AgentLoop
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -108,9 +109,14 @@ fun AgentChatScreen() {
         agentStatus = "Executing"
         inputText = ""
         executionJob = coroutineScope.launch {
-            agentLoop.executePlan(task, plan) { step ->
+            agentLoop.executePlan(
+                task = task,
+                plan = plan,
+                onStep = { step ->
                 agentStatus = step.title
-            }
+                },
+                executeAction = { action -> AccessibilityActionService.execute(action) }
+            )
             if (agentLoop.state.value == AgentGoalState.COMPLETED) {
                 agentStatus = "Completed"
                 messages.add(ChatMessage("AI", "Verified ${task.actionHistory.size} actions for: $trimmed"))
