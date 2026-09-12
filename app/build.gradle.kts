@@ -53,6 +53,48 @@ android {
             versionNameSuffix = "-turbo"
             buildConfigField("String", "NIGHTLY_CASE", "\"TURBO\"")
         }
+        create("experimental") {
+            dimension = "nightly"
+            applicationIdSuffix = ".experimental"
+            versionNameSuffix = "-experimental"
+            buildConfigField("String", "NIGHTLY_CASE", "\"EXPERIMENTAL\"")
+        }
+        create("orbit") {
+            dimension = "nightly"
+            applicationIdSuffix = ".orbit"
+            versionNameSuffix = "-orbit"
+            buildConfigField("String", "NIGHTLY_CASE", "\"ORBIT\"")
+        }
+        create("atlas") {
+            dimension = "nightly"
+            applicationIdSuffix = ".atlas"
+            versionNameSuffix = "-atlas"
+            buildConfigField("String", "NIGHTLY_CASE", "\"ATLAS\"")
+        }
+        create("sentinel") {
+            dimension = "nightly"
+            applicationIdSuffix = ".sentinel"
+            versionNameSuffix = "-sentinel"
+            buildConfigField("String", "NIGHTLY_CASE", "\"SENTINEL\"")
+        }
+        create("lucid") {
+            dimension = "nightly"
+            applicationIdSuffix = ".lucid"
+            versionNameSuffix = "-lucid"
+            buildConfigField("String", "NIGHTLY_CASE", "\"LUCID\"")
+        }
+        create("forge") {
+            dimension = "nightly"
+            applicationIdSuffix = ".forge"
+            versionNameSuffix = "-forge"
+            buildConfigField("String", "NIGHTLY_CASE", "\"FORGE\"")
+        }
+        create("synthesis") {
+            dimension = "nightly"
+            applicationIdSuffix = ".synthesis"
+            versionNameSuffix = "-synthesis"
+            buildConfigField("String", "NIGHTLY_CASE", "\"SYNTHESIS\"")
+        }
     }
 
     buildTypes {

@@ -51,6 +51,13 @@ fun AgentChatScreen() {
         "ACCESSIBILITY" -> Color(0xFFB7F0AD)
         "RECOVERY" -> Color(0xFFFF8A80)
         "TURBO" -> Color(0xFFD7A7FF)
+        "EXPERIMENTAL" -> Color(0xFFFF6B6B)
+        "ORBIT" -> Color(0xFF65D6CE)
+        "ATLAS" -> Color(0xFFFFA94D)
+        "SENTINEL" -> Color(0xFF9CA3FF)
+        "LUCID" -> Color(0xFFE7F5FF)
+        "FORGE" -> Color(0xFFFF7A45)
+        "SYNTHESIS" -> Color(0xFF74C0FC)
         else -> Color(0xFF7DE7FF)
     }
     val casePrompt = when (nightlyCase) {
@@ -58,7 +65,24 @@ fun AgentChatScreen() {
         "ACCESSIBILITY" -> "Describe the screen task..."
         "RECOVERY" -> "Resume a failed task..."
         "TURBO" -> "Run a fast command..."
+        "EXPERIMENTAL" -> "Try a new agent strategy..."
+        "ORBIT" -> "Coordinate a multi-step mission..."
+        "ATLAS" -> "Map the screen and target..."
+        "SENTINEL" -> "Check risks before acting..."
+        "LUCID" -> "Explain the clearest next step..."
+        "FORGE" -> "Build a reliable action chain..."
+        "SYNTHESIS" -> "Combine the best execution strategy..."
         else -> "Type a focused command..."
+    }
+    val caseCapability = when (nightlyCase) {
+        "EXPERIMENTAL" -> "Adaptive strategy lab"
+        "ORBIT" -> "Multi-step coordination"
+        "ATLAS" -> "Screen mapping"
+        "SENTINEL" -> "Risk-aware execution"
+        "LUCID" -> "Explainable planning"
+        "FORGE" -> "Reliable action chains"
+        "SYNTHESIS" -> "Unified agent core"
+        else -> "Observe // decide // verify"
     }
     val messages = remember {
         mutableStateListOf(
@@ -131,6 +155,11 @@ fun AgentChatScreen() {
                             text = "$agentStatus // ${loopState.name}",
                             color = caseAccent.copy(alpha = 0.78f),
                             style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = caseCapability,
+                            color = Color(0xFFEAFBFF).copy(alpha = 0.72f),
+                            style = MaterialTheme.typography.labelMedium
                         )
 
                         Row(
