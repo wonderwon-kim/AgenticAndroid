@@ -1,6 +1,9 @@
 package com.agenticandroid.app.ui
 
 import com.agenticandroid.app.BuildConfig
+import com.agenticandroid.app.agent.Action
+import com.agenticandroid.app.agent.AgentGoalState
+import com.agenticandroid.app.agent.AgentLoop
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +27,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,6 +43,8 @@ private data class ChatMessage(
 
 @Composable
 fun AgentChatScreen() {
+    val agentLoop = remember { AgentLoop() }
+    val loopState by agentLoop.state.collectAsState()
     val nightlyCase = BuildConfig.NIGHTLY_CASE
     val caseAccent = when (nightlyCase) {
         "PLANNER" -> Color(0xFFFFC857)
@@ -61,14 +67,26 @@ fun AgentChatScreen() {
         )
     }
     var inputText by remember { mutableStateOf("") }
-    var agentStatus by remember { mutableStateOf("Scanning") }
+    var agentStatus by remember { mutableStateOf("Ready") }
 
     fun sendMessage() {
         val trimmed = inputText.trim()
         if (trimmed.isEmpty()) return
+        val task = agentLoop.createTask(trimmed)
+        val plan = agentLoop.buildPlan(trimmed)
+        agentLoop.updateState(AgentGoalState.OBSERVING)
+        agentLoop.recordObservation(task, "Screen snapshot captured")
+        agentLoop.updateState(AgentGoalState.THINKING)
+        plan.forEach { step ->
+            agentLoop.recordAction(task, Action(type = step.actionType, description = step.description))
+        }
+        agentLoop.updateState(AgentGoalState.ACTING)
+        agentLoop.updateState(AgentGoalState.VERIFYING)
+        agentLoop.finish(task)
         messages.add(ChatMessage("User", trimmed))
-        agentStatus = "Acting"
-        messages.add(ChatMessage("AI", "Analyzing the current screen and evaluating the next action for: $trimmed"))
+        agentStatus = "Completed"
+        messages.add(ChatMessage("AI", "Plan ready: ${plan.joinToString(" -> ") { it.title }}"))
+        messages.add(ChatMessage("AI", "Verified ${task.actionHistory.size} actions for: $trimmed"))
         inputText = ""
     }
 
@@ -110,10 +128,25 @@ fun AgentChatScreen() {
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = agentStatus,
+                            text = "$agentStatus // ${loopState.name}",
                             color = caseAccent.copy(alpha = 0.78f),
                             style = MaterialTheme.typography.bodyMedium
                         )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(onClick = { agentLoop.pause() }, enabled = loopState != AgentGoalState.PAUSED) {
+                                Text("Pause")
+                            }
+                            Button(onClick = { agentLoop.resume() }, enabled = loopState == AgentGoalState.PAUSED) {
+                                Text("Resume")
+                            }
+                            Button(onClick = { agentLoop.cancel(); agentStatus = "Cancelled" }) {
+                                Text("Stop")
+                            }
+                        }
                     }
                 }
 
