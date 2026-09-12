@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -39,106 +40,120 @@ private data class ChatMessage(
 fun AgentChatScreen() {
     val messages = remember {
         mutableStateListOf(
-            ChatMessage(
-                sender = "AI",
-                text = "Ready. Tell me what to do on your screen."
-            )
+            ChatMessage("AI", "System online. Ready for autonomous task execution."),
+            ChatMessage("AI", "Session synced with your Android surface.")
         )
     }
     var inputText by remember { mutableStateOf("") }
-    var agentStatus by remember { mutableStateOf("Standby") }
+    var agentStatus by remember { mutableStateOf("Scanning") }
 
     fun sendMessage() {
         val trimmed = inputText.trim()
         if (trimmed.isEmpty()) return
         messages.add(ChatMessage("User", trimmed))
-        agentStatus = "Planning"
-        messages.add(ChatMessage("AI", "Task accepted: $trimmed\nObserving screen and selecting next action."))
+        agentStatus = "Acting"
+        messages.add(ChatMessage("AI", "Analyzing the current screen and evaluating the next action for: $trimmed"))
         inputText = ""
     }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xFFF7F2EA)
+        color = Color(0xFF060B16)
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF08101F),
+                            Color(0xFF0C1830),
+                            Color(0xFF101A34)
+                        )
+                    )
+                )
         ) {
-            Box(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(Color(0xFF1D1A27))
-                    .padding(16.dp)
+                    .fillMaxSize()
+                    .padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = "AgenticAndroid",
-                        color = Color(0xFFFFE7B7),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = agentStatus,
-                        color = Color(0xFFF3E6C8),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color(0xFF11213E).copy(alpha = 0.82f))
+                        .padding(18.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            text = "A I // Agent",
+                            color = Color(0xFF7DE7FF),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = agentStatus,
+                            color = Color(0xFFBFEAFF),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
-            }
 
-            LazyColumn(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                items(messages) { message ->
-                    val isUser = message.sender == "User"
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = if (isUser) Alignment.CenterEnd else Alignment.CenterStart
-                    ) {
-                        Card(
-                            shape = RoundedCornerShape(18.dp),
-                            modifier = Modifier
-                                .fillMaxWidth(0.82f)
-                                .background(
-                                    color = if (isUser) Color(0xFF2E7D32) else Color(0xFFFFFFFF),
-                                    shape = RoundedCornerShape(18.dp)
-                                )
+                LazyColumn(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(messages) { message ->
+                        val isUser = message.sender == "User"
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = if (isUser) Alignment.CenterEnd else Alignment.CenterStart
                         ) {
-                            Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text(
-                                    text = message.sender,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = if (isUser) Color.White else Color(0xFF8A5E00)
-                                )
-                                Text(
-                                    text = message.text,
-                                    color = if (isUser) Color.White else Color(0xFF1F1F1F)
-                                )
+                            Card(
+                                shape = RoundedCornerShape(18.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth(0.82f)
+                                    .background(
+                                        color = if (isUser) Color(0xFF1FB6FF) else Color(0xFF15233F),
+                                        shape = RoundedCornerShape(18.dp)
+                                    )
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Text(
+                                        text = message.sender,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = if (isUser) Color.Black else Color(0xFF8FE9FF)
+                                    )
+                                    Text(
+                                        text = message.text,
+                                        color = if (isUser) Color.Black else Color(0xFFEAFBFF)
+                                    )
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = inputText,
-                    onValueChange = { inputText = it },
-                    modifier = Modifier.weight(1f),
-                    placeholder = { Text("Ask the agent...") },
-                    shape = RoundedCornerShape(16.dp)
-                )
-                Button(
-                    onClick = { sendMessage() },
-                    shape = RoundedCornerShape(16.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Send")
+                    OutlinedTextField(
+                        value = inputText,
+                        onValueChange = { inputText = it },
+                        modifier = Modifier.weight(1f),
+                        placeholder = { Text("Type a command...", color = Color(0xFF9FC3D7)) },
+                        shape = RoundedCornerShape(18.dp)
+                    )
+                    Button(
+                        onClick = { sendMessage() },
+                        shape = RoundedCornerShape(18.dp)
+                    ) {
+                        Text("Run")
+                    }
                 }
             }
         }
